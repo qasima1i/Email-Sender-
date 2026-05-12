@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="theme-color" content="#0f172a"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>Email Selector</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#070b14;
+  --surface:#0d1420;
+  --card:#111827;
+  --border:#1e2d45;
+  --border2:#253650;
+  --accent:#38bdf8;
+  --accent2:#0ea5e9;
+  --green:#22d3a5;
+  --red:#f87171;
+  --text:#e2eaf6;
+  --muted:#4a6080;
+  --dim:#253040;
+}
+html,body{height:100%;background:var(--bg);font-family:'IBM Plex Sans',sans-serif;color:var(--text);-webkit-tap-highlight-color:transparent;}
+
+.app{min-height:100vh;padding:20px 14px 60px;max-width:640px;margin:0 auto;}
+
+/* Header */
+.header{margin-bottom:24px;}
+.header h1{font-family:'Syne',sans-serif;font-size:1.7rem;font-weight:800;color:var(--text);letter-spacing:-0.02em;}
+.header h1 span{color:var(--accent);}
+.header p{color:var(--muted);font-size:0.82rem;margin-top:4px;font-weight:300;}
+
+/* Steps indicator */
+.steps{display:flex;gap:0;margin-bottom:24px;border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.step{flex:1;padding:10px 6px;text-align:center;font-family:'Syne',sans-serif;font-size:0.7rem;font-weight:700;color:var(--muted);background:var(--surface);border-right:1px solid var(--border);transition:all 0.2s;text-transform:uppercase;letter-spacing:0.05em;}
+.step:last-child{border-right:none;}
+.step.active{background:rgba(56,189,248,0.08);color:var(--accent);}
+.step.done{background:rgba(34,211,165,0.06);color:var(--green);}
+
+/* Card */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px;}
+.card-label{font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.badge{background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.2);border-radius:20px;padding:2px 10px;font-size:0.7rem;color:var(--accent);margin-left:auto;}
+
+/* Upload */
+.upload-zone{border:2px dashed var(--border2);border-radius:10px;padding:28px 16px;text-align:center;cursor:pointer;transition:all 0.2s;}
+.upload-zone:active,.upload-zone.drag{border-color:var(--accent);background:rgba(56,189,248,0.04);}
+.upload-icon{font-size:2.2rem;margin-bottom:8px;}
+.upload-zone p{color:var(--muted);font-size:0.83rem;line-height:1.6;}
+.upload-zone span{color:var(--accent);font-weight:500;}
+
+/* Compose fields */
+label{display:block;font-size:0.72rem;color:var(--muted);font-weight:500;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.05em;}
+input[type=text],textarea{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:10px 13px;color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:0.88rem;outline:none;transition:border-color 0.2s;-webkit-appearance:none;}
+input[type=text]:focus,textarea:focus{border-color:var(--accent);}
+input::placeholder,textarea::placeholder{color:var(--dim);}
+textarea{resize:vertical;min-height:110px;}
+.field{margin-bottom:12px;}
+
+/* Toolbar */
+.toolbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.tb-btn{padding:7px 12px;border-radius:8px;border:1px solid var(--border2);font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:700;cursor:pointer;background:transparent;color:var(--muted);transition:all 0.15s;white-space:nowrap;}
+.tb-btn:active{transform:scale(0.96);}
+.tb-btn.accent{border-color:rgba(56,189,248,0.3);color:var(--accent);background:rgba(56,189,248,0.06);}
+.tb-btn.green{border-color:rgba(34,211,165,0.3);color:var(--green);background:rgba(34,211,165,0.06);}
+.tb-btn.red{border-color:rgba(248,113,113,0.3);color:var(--red);background:rgba(248,113,113,0.06);}
+.selected-count{font-size:0.78rem;color:var(--accent);font-weight:600;margin-left:auto;}
+
+/* Customer list */
+.customer-list{display:flex;flex-direction:column;gap:1px;max-height:420px;overflow-y:auto;border-radius:8px;overflow:hidden;border:1px solid var(--border);}
+.customer-list::-webkit-scrollbar{width:3px;}
+.customer-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+.c-row{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--surface);cursor:pointer;transition:background 0.15s;border-bottom:1px solid var(--border);}
+.c-row:last-child{border-bottom:none;}
+.c-row:active{background:var(--card);}
+.c-row.selected{background:rgba(56,189,248,0.07);}
+
+.c-check{width:18px;height:18px;border-radius:5px;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s;}
+.c-row.selected .c-check{background:var(--accent);border-color:var(--accent);}
+.c-check svg{display:none;}
+.c-row.selected .c-check svg{display:block;}
+
+.c-num{font-size:0.7rem;color:var(--muted);width:22px;text-align:center;flex-shrink:0;font-family:'Syne',sans-serif;}
+.c-info{flex:1;min-width:0;}
+.c-name{font-size:0.85rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.c-email{font-size:0.73rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* Range selector */
+.range-bar{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;}
+.range-bar span{font-size:0.78rem;color:var(--muted);}
+.range-bar input[type=number]{width:60px;padding:6px 8px;font-size:0.82rem;text-align:center;}
+.range-bar .tb-btn{padding:7px 14px;}
+
+/* Send button */
+.send-btn{width:100%;padding:16px;border-radius:12px;border:none;font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;cursor:pointer;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#070b14;display:flex;align-items:center;justify-content:center;gap:10px;transition:all 0.2s;letter-spacing:0.02em;}
+.send-btn:active{transform:scale(0.98);}
+.send-btn:disabled{opacity:0.35;cursor:not-allowed;}
+
+.empty{text-align:center;color:var(--dim);padding:28px;font-size:0.83rem;}
+.tip{font-size:0.74rem;color:var(--muted);margin-top:8px;}
+.tip strong{color:var(--accent);}
+
+.divider{height:1px;background:var(--border);margin:14px 0;}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--green);color:#070b14;padding:12px 22px;border-radius:30px;font-family:'Syne',sans-serif;font-size:0.82rem;font-weight:700;transition:transform 0.3s;z-index:999;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <h1>📧 Email <span>Selector</span></h1>
+    <p>Customers select karein → Gmail directly khul jayega</p>
+  </div>
+
+  <div class="steps">
+    <div class="step active" id="s1">① Upload</div>
+    <div class="step" id="s2">② Compose</div>
+    <div class="step" id="s3">③ Select</div>
+    <div class="step" id="s4">④ Send</div>
+  </div>
+
+  <!-- STEP 1: Upload -->
+  <div class="card" id="card-upload">
+    <div class="card-label">📂 Step 1 — Customer List Upload Karein</div>
+    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()"
+         ondragover="event.preventDefault();this.classList.add('drag')"
+         ondragleave="this.classList.remove('drag')"
+         ondrop="handleDrop(event)">
+      <div class="upload-icon">📄</div>
+      <p>CSV file tap karein ya <span>yahan drop karein</span></p>
+      <p style="font-size:0.72rem;margin-top:6px;color:var(--dim)">Format: naam, email (ya sirf emails bhi chalenge)</p>
+    </div>
+    <input type="file" id="fileInput" accept=".csv,.txt" style="display:none" onchange="loadFile(this)"/>
+    <div class="divider"></div>
+    <p style="font-size:0.78rem;color:var(--muted);text-align:center;">Ya manually email add karein:</p>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <input type="text" id="manualInput" placeholder="email@example.com ya naam, email" style="flex:1"/>
+      <button class="tb-btn accent" onclick="addManual()">+ Add</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: Compose -->
+  <div class="card" id="card-compose" style="display:none">
+    <div class="card-label">✍️ Step 2 — Email Likhein</div>
+    <div class="field">
+      <label>Subject *</label>
+      <input type="text" id="subject" placeholder="Hamare special offer ka faida uthayein! 🎉"/>
+    </div>
+    <div class="field">
+      <label>Message *</label>
+      <textarea id="msgBody" placeholder="Aadarniya {name},&#10;&#10;Aapke liye ek khaas offer...&#10;&#10;Shukriya!"></textarea>
+    </div>
+    <p class="tip">💡 <strong>{name}</strong> likhein — customer ka naam automatically aa jayega</p>
+  </div>
+
+  <!-- STEP 3+4: Select & Send -->
+  <div class="card" id="card-list" style="display:none">
+    <div class="card-label">
+      ✅ Step 3 — Customers Select Karein
+      <span class="badge" id="selBadge">0 selected</span>
+    </div>
+
+    <!-- Range Quick Select -->
+    <div class="range-bar">
+      <span>Row</span>
+      <input type="number" id="rangeFrom" placeholder="1" min="1"/>
+      <span>se</span>
+      <input type="number" id="rangeTo" placeholder="25" min="1"/>
+      <span>tak</span>
+      <button class="tb-btn accent" onclick="selectRange()">Select</button>
+    </div>
+
+    <div class="toolbar">
+      <button class="tb-btn accent" onclick="selectAll()">Select All</button>
+      <button class="tb-btn red" onclick="deselectAll()">Clear</button>
+      <button class="tb-btn" onclick="selectRange25(0)">1–25</button>
+      <button class="tb-btn" onclick="selectRange25(1)">26–50</button>
+      <button class="tb-btn" onclick="selectRange25(2)">51–75</button>
+      <button class="tb-btn" onclick="selectRange25(3)">76–100</button>
+    </div>
+
+    <div class="customer-list" id="customerList"></div>
+
+    <div class="divider"></div>
+    <div class="card-label" style="margin-bottom:12px;">🚀 Step 4 — Gmail Mein Bhejein</div>
+    <button class="send-btn" id="sendBtn" onclick="openGmail()" disabled>
+      📨 Gmail Mein Open Karein
+    </button>
+    <p class="tip" style="text-align:center;margin-top:10px;">
+      Selected customers ka email Gmail mein ready milega — bas Send dabayein!
+    </p>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let customers = [];
+let selected = new Set();
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function setStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('s' + i);
+    el.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
+  }
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  const result = [];
+  lines.forEach((line, i) => {
+    if (i === 0 && line.toLowerCase().includes('email') && !line.includes('@')) return;
+    const parts = line.split(',').map(p => p.trim().replace(/^"|"$/g, ''));
+    let email = '', name = '';
+    parts.forEach(p => {
+      if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p)) email = p;
+      else if (!name && p) name = p;
+    });
+    if (email) result.push({ name: name || email.split('@')[0], email });
+  });
+  return result;
+}
+
+function loadCustomers(list) {
+  // Deduplicate
+  list.forEach(c => {
+    if (!customers.find(x => x.email === c.email)) customers.push(c);
+  });
+  renderList();
+  document.getElementById('card-compose').style.display = 'block';
+  document.getElementById('card-list').style.display = 'block';
+  setStep(2);
+  showToast(list.length + ' customers loaded!');
+}
+
+function loadFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const parsed = parseCSV(e.target.result);
+    loadCustomers(parsed);
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => loadCustomers(parseCSV(ev.target.result));
+  reader.readAsText(file);
+}
+
+function addManual() {
+  const val = document.getElementById('manualInput').value.trim();
+  if (!val) return;
+  let email = '', name = '';
+  if (val.includes(',')) {
+    const parts = val.split(',').map(p => p.trim());
+    name = parts[0]; email = parts[1];
+  } else if (val.includes('@')) {
+    email = val; name = val.split('@')[0];
+  }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showToast('Valid email likhein!'); return;
+  }
+  if (customers.find(c => c.email === email)) { showToast('Already added!'); return; }
+  customers.push({ name, email });
+  document.getElementById('manualInput').value = '';
+  renderList();
+  document.getElementById('card-compose').style.display = 'block';
+  document.getElementById('card-list').style.display = 'block';
+  setStep(2);
+}
+
+function renderList() {
+  const list = document.getElementById('customerList');
+  if (!customers.length) {
+    list.innerHTML = '<div class="empty">Koi customer nahi</div>';
+    return;
+  }
+  list.innerHTML = customers.map((c, i) => `
+    <div class="c-row ${selected.has(i) ? 'selected' : ''}" onclick="toggle(${i})">
+      <div class="c-check">
+        <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+          <path d="M1 4L4 7L9 1" stroke="#070b14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="c-num">${i + 1}</div>
+      <div class="c-info">
+        <div class="c-name">${esc(c.name)}</div>
+        <div class="c-email">${esc(c.email)}</div>
+      </div>
+    </div>
+  `).join('');
+  updateCount();
+}
+
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function toggle(i) {
+  if (selected.has(i)) selected.delete(i);
+  else selected.add(i);
+  renderList();
+  setStep(selected.size > 0 ? 4 : 3);
+}
+
+function selectAll() {
+  customers.forEach((_, i) => selected.add(i));
+  renderList(); setStep(4);
+}
+
+function deselectAll() {
+  selected.clear();
+  renderList(); setStep(3);
+}
+
+function selectRange() {
+  const from = parseInt(document.getElementById('rangeFrom').value) - 1;
+  const to = parseInt(document.getElementById('rangeTo').value) - 1;
+  if (isNaN(from) || isNaN(to)) { showToast('Numbers likhein!'); return; }
+  selected.clear();
+  for (let i = Math.max(0, from); i <= Math.min(customers.length - 1, to); i++) selected.add(i);
+  renderList(); setStep(4);
+  showToast(selected.size + ' customers selected!');
+  // Scroll to first selected
+  setTimeout(() => {
+    const rows = document.querySelectorAll('.c-row');
+    if (rows[from]) rows[from].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 100);
+}
+
+function selectRange25(page) {
+  const from = page * 25;
+  const to = from + 24;
+  document.getElementById('rangeFrom').value = from + 1;
+  document.getElementById('rangeTo').value = to + 1;
+  selectRange();
+}
+
+function updateCount() {
+  const n = selected.size;
+  document.getElementById('selBadge').textContent = n + ' selected';
+  document.getElementById('sendBtn').disabled = n === 0;
+}
+
+function openGmail() {
+  const subject = document.getElementById('subject').value.trim();
+  const body = document.getElementById('msgBody').value.trim();
+
+  if (!subject) { showToast('Subject likhein!'); return; }
+  if (!body)    { showToast('Message likhein!');  return; }
+
+  const sel = [...selected].map(i => customers[i]);
+
+  // Gmail BCC mein saari emails daalein (privacy ke liye)
+  // mailto has URL length limits — split into chunks of 25
+  const emails = sel.map(c => c.email);
+
+  // Build mailto
+  const bcc = emails.join(',');
+  const encodedSubject = encodeURIComponent(subject);
+  const encodedBody = encodeURIComponent(body.replace(/{name}/g, 'Customer'));
+
+  const mailto = `mailto:?bcc=${encodeURIComponent(bcc)}&subject=${encodedSubject}&body=${encodedBody}`;
+
+  // Try to open
+  const a = document.createElement('a');
+  a.href = mailto;
+  a.click();
+
+  showToast('Gmail khul raha hai! ✓');
+  setStep(4);
+}
+
+// Enter key for manual input
+document.getElementById('manualInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addManual();
+});
+</script>
+</body>
+</html>
